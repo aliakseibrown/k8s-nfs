@@ -66,42 +66,39 @@ kubectl port-forward svc/nginx-service 8080:80
 
 ## 6. Diagram
 ```bash
-                         ┌────────────────────────┐
-                         │   Kubernetes Cluster   │
-                         │        (Kind)          │
-                         └────────────┬───────────┘
-                                      │
-             ┌──────────────────────────────────────────────┐
-             │                                              │
-             ▼                                              ▼
-     ┌────────────┐                                ┌──────────────────┐
-     │ NFS Server │                                │  External Pod(s) │
-     │ (Pod + PVC │                                │  using PVCs      │
-     │  + Service)│                                └──────┬───────────┘
-     └──────┬─────┘                                       │
-            │    Service IP                               │
-            ▼                                             │
-    ┌──────────────────┐                                  │
-    │ nfs-subdir-      │                                  │
-    │ external-        │                                  │
-    │ provisioner Pod  │◄─────────────────────────────────┘
-    │ (uses NFS Server)│
-    └──────┬───────────┘
-           │
-           ▼
- ┌──────────────────────┐
- │ StorageClass         │
- │ (e.g., nfs-client)   │
- └────────┬─────────────┘
-          │
-          ▼
-  ┌────────────────────┐
-  │ PersistentVolume   │
-  └────────┬───────────┘
-           ▼
-  ┌────────────────────┐
-  │ PersistentVolume-  │
-  │ Claim (by pods)    │
-  └────────────────────┘
-
++----------------------+       +-----------------------+  
+|   NFS Provisioner    |       |   StorageClass        |  
+| (Creates PVs via     |<------| (my-nfs-storage)      |  
+|  Helm installation)  |       +-----------------------+  
++----------------------+               ▲  
+           |                          │  
+           | Provisions               │ References  
+           v                          │  
++----------------------+       +-----------------------+  
+| PersistentVolume (PV)|<------| PersistentVolumeClaim |  
+| (Auto-created)       |       | (nfs-pvc)             |  
++----------------------+       +-----------------------+  
+                                 ▲               ▲  
+                                 │               │  
+          +----------------------+               +----------------------+  
+          │ Mounts at /mnt                       │ Mounts at             
+          │                                      │ /usr/share/nginx/html  
+          v                                      v  
++----------------------+              +----------------------+  
+|       Job Pod        |              |    Deployment Pod    |  
+| (copy-content-job)   |              | (nginx-deployment)   |  
+| Writes index.html    |              | Serves index.html    |  
++----------------------+              +----------------------+  
+                                                 ▲  
+                                                 │  
+                                      +----------------------+  
+                                      | Service              |  
+                                      | (nginx-service)      |  
+                                      +----------------------+  
+                                                 ▲  
+                                                 │  
+                                      +----------------------+  
+                                      | Port-Forward         |  
+                                      | (localhost:8080 → 80)|  
+                                      +----------------------+  
 ```
