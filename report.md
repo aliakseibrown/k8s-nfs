@@ -58,4 +58,50 @@ kubectl get jobs
 ```
 ![4.png](screens/4.png)
 
+## 5. See the results
+```bash
+kubectl port-forward svc/nginx-service 8080:80
+```
 ![5.png](screens/5.png)
+
+## 6. Diagram
+```bash
+                         ┌────────────────────────┐
+                         │   Kubernetes Cluster   │
+                         │        (Kind)          │
+                         └────────────┬───────────┘
+                                      │
+             ┌──────────────────────────────────────────────┐
+             │                                              │
+             ▼                                              ▼
+     ┌────────────┐                                ┌──────────────────┐
+     │ NFS Server │                                │  External Pod(s) │
+     │ (Pod + PVC │                                │  using PVCs      │
+     │  + Service)│                                └──────┬───────────┘
+     └──────┬─────┘                                       │
+            │    Service IP                               │
+            ▼                                             │
+    ┌──────────────────┐                                  │
+    │ nfs-subdir-      │                                  │
+    │ external-        │                                  │
+    │ provisioner Pod  │◄─────────────────────────────────┘
+    │ (uses NFS Server)│
+    └──────┬───────────┘
+           │
+           ▼
+ ┌──────────────────────┐
+ │ StorageClass         │
+ │ (e.g., nfs-client)   │
+ └────────┬─────────────┘
+          │
+          ▼
+  ┌────────────────────┐
+  │ PersistentVolume   │
+  └────────┬───────────┘
+           ▼
+  ┌────────────────────┐
+  │ PersistentVolume-  │
+  │ Claim (by pods)    │
+  └────────────────────┘
+
+```
