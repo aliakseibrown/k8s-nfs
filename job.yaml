@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: copy-content-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args: ["echo 'Hello from Kubernetes Lab!' > /mnt/index.html && chmod 644 /mnt/index.html"]
+        volumeMounts:
+        - name: nfs-volume
+          mountPath: /mnt
+      volumes:
+      - name: nfs-volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+      restartPolicy: Never
